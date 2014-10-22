@@ -1,2 +1,5 @@
 *.pyc
 /frasco_sharejs/sharejs/node_modules
+/build
+/dist
+/frasco_sharejs.egg-info
