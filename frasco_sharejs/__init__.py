@@ -56,9 +56,10 @@ class SharejsFeature(Feature):
 
         if app.features.exists('assets'):
             app.features.assets.expose_package('sharejs', __name__)
-            app.assets.register('sharejs', 'sharejs/bcsocket.js',
+            app.assets.register('sharejs', {
+                "contents": [{"filters": "jsmin", "contents": ['sharejs/bcsocket.js',
                 'sharejs/text.js', 'sharejs/json0.js', 'sharejs/share.js',
-                'sharejs/connect.js', output='sharejs')
+                'sharejs/connect.js']}], "output": 'sharejs'})
 
     @hook()
     def before_request(self):
