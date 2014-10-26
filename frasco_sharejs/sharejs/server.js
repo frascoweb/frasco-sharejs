@@ -69,7 +69,7 @@ function createShareClient(backend, auth) {
 }
 
 
-function createShareServer(shareClient) {
+function createShareBrowserChannelServer(shareClient) {
   var Duplex = require('stream').Duplex;
   var browserChannel = require('browserchannel').server
   var app = express();
@@ -133,6 +133,58 @@ function createShareServer(shareClient) {
 }
 
 
+function createShareWebsocketServer(shareClient) {
+  var Duplex = require('stream').Duplex;
+  var WebSocketServer = require('ws').Server;
+  var url = require('url');
+  var app = require('http').createServer(function (req, res) {
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end('okay');
+  });
+
+  app.wss = new WebSocketServer({server: app});
+  app.wss.on('connection', function (client) {
+    var stream = new Duplex({objectMode: true});
+    var parsed_url = url.parse(client.upgradeReq.url, true);
+    var token = parsed_url.query.token;
+    if (!token) {
+      return client.close();
+    }
+    stream.token = token;
+    stream.headers = client.upgradeReq.headers;
+    stream.remoteAddress = client.upgradeReq.connection.remoteAddress;
+
+    stream._read = function() {};
+    stream._write = function(chunk, encoding, callback) {
+      client.send(JSON.stringify(chunk));
+      callback();
+    };
+
+    client.on('message', function(data) {
+      stream.push(JSON.parse(data));
+    });
+
+    client.on('error', function(msg) {
+      client.close(msg);
+    });
+
+    client.on('close', function(reason) {
+      stream.push(null);
+      stream.emit('close');
+      client.close(reason);
+    });
+
+    stream.on('end', function() {
+      client.close();
+    });
+
+    shareClient.listen(stream);
+  });
+
+  return app;
+}
+
+
 function attachRESTmiddleware(app, backend) {
   app.use('/', require('livedb-rest')(backend));
 }
@@ -145,17 +197,27 @@ function createRESTServer(backend) {
 }
 
 
-function startShareServer(options, backend) {
+function startShareBrowserChannelServer(options, backend) {
   var redisClient = redis.createClient(options['redis-port'], options['redis-host']),
       shareClient = createShareClient(backend, ShareJsAuthHandler(redisClient)),
-      app = createShareServer(shareClient);
+      app = createShareBrowserChannelServer(shareClient);
 
   if (options['rest']) {
     attachRESTmiddleware(app, backend);
   }
 
   app.listen(options.port, options.host);
-  console.log("ShareJS Server listening on " + options.host + ":" + options.port);
+  console.log("ShareJS Server (browserchannel) listening on " + options.host + ":" + options.port);
+}
+
+
+function startShareWebsocketServer(options, backend) {
+  var redisClient = redis.createClient(options['redis-port'], options['redis-host']),
+      shareClient = createShareClient(backend, ShareJsAuthHandler(redisClient)),
+      app = createShareWebsocketServer(shareClient);
+
+  app.listen(options.port, options.host);
+  console.log("ShareJS Server (websocket) listening on " + options.host + ":" + options.port);
 }
 
 
@@ -202,7 +264,8 @@ function main() {
     'redis-host': 'localhost',
     'redis-port': 6379,
     'rest': false,
-    'rest-only': false
+    'rest-only': false,
+    'websocket': false
   });
 
   var config = loadConfig(argv['config'], argv);
@@ -210,8 +273,10 @@ function main() {
 
   if (config['rest-only']) {
     startRESTServer(config, backend);
+  } else if (config['websocket']) {
+    startShareWebsocketServer(config, backend);
   } else {
-    startShareServer(config, backend);
+    startShareBrowserChannelServer(config, backend);
   }
 }
 

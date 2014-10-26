@@ -16,6 +16,7 @@ class SharejsFeature(Feature):
                 "api_url": None,
                 "token_ttl": 3600,
                 "rest_api": False,
+                "use_websocket": False,
                 "local_rest_api": False,
                 "local_rest_api_port": 3100,
                 "redis_host": "localhost",
@@ -32,7 +33,9 @@ class SharejsFeature(Feature):
         sharejs_args = ["node", self.serverjs_path, "--port",
             self.options['server_port']] + args
         if self.options['rest_api']:
-            sharejs_api.append('--rest')
+            sharejs_args.append('--rest')
+        if self.options['use_websocket']:
+            sharejs_args.append('--websocket')
         app.processes.append(("sharejs", sharejs_args))
 
         if self.options['server_url'] is None:
@@ -65,7 +68,8 @@ class SharejsFeature(Feature):
     def before_request(self):
         current_app.config['EXPORTED_JS_VARS'].update({
             'SHAREJS_SERVER_URL': self.options['server_url'],
-            'SHAREJS_TOKEN': self.current_token
+            'SHAREJS_TOKEN': self.current_token,
+            'SHAREJS_USE_WEBSOCKET': self.options['use_websocket']
         })
 
     @action('create_sharejs_token', default_option='doc_id', as_='sharejs_token')
