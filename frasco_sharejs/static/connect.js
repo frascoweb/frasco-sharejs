@@ -8,7 +8,8 @@ sharejs.connect = function(server_url, token) {
     }
     if (SHAREJS_USE_WEBSOCKET) {
         var qs = '?token=' + encodeURIComponent(token);
-        var socket = new WebSocket(SHAREJS_SERVER_URL + qs);
+        var WSClass = ReconnectingWebSocket ? ReconnectingWebSocket : WebSocket;
+        var socket = new WSClass(SHAREJS_SERVER_URL + qs);
     } else {
         var bc_opts = {
             reconnect: true

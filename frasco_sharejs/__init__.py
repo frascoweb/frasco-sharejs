@@ -59,10 +59,13 @@ class SharejsFeature(Feature):
 
         if app.features.exists('assets'):
             app.features.assets.expose_package('sharejs', __name__)
+            assets = ['sharejs/bcsocket.js', 'sharejs/text.js', 'sharejs/json0.js',
+                'sharejs/share.js', 'sharejs/connect.js']
+            if self.options['use_websocket']:
+                assets.append('sharejs/reconnecting-websocket.js')
             app.assets.register('sharejs', {
-                "contents": [{"filters": "jsmin", "contents": ['sharejs/bcsocket.js',
-                'sharejs/text.js', 'sharejs/json0.js', 'sharejs/share.js',
-                'sharejs/connect.js']}], "output": 'sharejs'})
+                "contents": [{"filters": "jsmin", "contents": assets}],
+                "output": 'sharejs'})
 
     @hook()
     def before_request(self):
