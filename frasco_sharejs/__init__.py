@@ -13,6 +13,7 @@ class SharejsFeature(Feature):
     defaults = {"mongodb_url": "mongodb://localhost:27017/sharejs?auto_reconnect",
                 "server_url": None,
                 "server_port": 3000,
+                "server_host": "127.0.0.1",
                 "api_url": None,
                 "token_ttl": 3600,
                 "rest_api": False,
@@ -31,7 +32,7 @@ class SharejsFeature(Feature):
                 "--redis-port", self.options['redis_port']]
 
         sharejs_args = ["node", self.serverjs_path, "--port",
-            self.options['server_port']] + args
+            self.options['server_port'], "--host", self.options['server_host']] + args
         if self.options['rest_api']:
             sharejs_args.append('--rest')
         if self.options['use_websocket']:
