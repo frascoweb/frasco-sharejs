@@ -83,9 +83,6 @@
         this.onclose = function(event) {
         };
 
-        this.onconnecting = function(event) {
-        };
-
         this.onmessage = function(event) {
         };
 
@@ -94,9 +91,6 @@
 
         function connect(reconnectAttempt) {
             ws = new WebSocket(url, protocols);
-            
-            if(!reconnectAttempt)
-                self.onconnecting();
                 
             if (self.debug || ReconnectingWebSocket.debugAll) {
                 console.debug('ReconnectingWebSocket', 'attempt-connect', url);
@@ -126,18 +120,11 @@
             ws.onclose = function(event) {
                 clearTimeout(timeout);
                 ws = null;
+                self.onclose(event);
                 if (forcedClose) {
                     self.readyState = WebSocket.CLOSED;
-                    self.onclose(event);
                 } else {
                     self.readyState = WebSocket.CONNECTING;
-                    self.onconnecting();
-                    if (!reconnectAttempt && !timedOut) {
-                        if (self.debug || ReconnectingWebSocket.debugAll) {
-                            console.debug('ReconnectingWebSocket', 'onclose', url);
-                        }
-                        self.onclose(event);
-                    }
                     setTimeout(function() {
                         self.reconnectAttempts++;
                         connect(true);
