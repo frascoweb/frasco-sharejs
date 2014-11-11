@@ -30,4 +30,5 @@ class ShareJsApi(object):
     def get_doc_content(self, collection, name):
         url = '/%s/%s' % (collection, name)
         r = self.request('GET', url)
+        r.encoding = 'UTF-8'
         return r.text
