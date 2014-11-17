@@ -87,6 +87,9 @@ class SharejsFeature(Feature):
         if 'sjstoken' not in session:
             token = self.create_token()
             session['sjstoken'] = token
+        else:
+            self.redis.expire('sharejs:%s' % session['sjstoken'],
+                self.options["token_ttl"])
         return session['sjstoken']
 
     @action('authorize_sharejs_doc', default_option='doc_id')
