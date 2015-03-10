@@ -81,7 +81,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        # 'frasco',
+        'frasco',
         'requests'
     ],
     cmdclass={'install': post_install}
