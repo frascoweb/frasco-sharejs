@@ -98,6 +98,7 @@ class SharejsFeature(Feature):
         key = 'sharejs:%s' % token
         self.redis.sadd(key, *map(str, list([doc_id], *docs)))
         self.redis.expire(key, self.options["token_ttl"])
+        return token
 
 
 current_sharejs_token = LocalProxy(lambda: current_app.features.sharejs.current_token)
