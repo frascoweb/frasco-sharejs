@@ -65,7 +65,7 @@ class post_install(install):
 
 setup(
     name='frasco-sharejs',
-    version='0.1',
+    version='0.1.1',
     url='http://github.com/frascoweb/frasco-sharejs',
     license='MIT',
     author='Maxime Bouroumeau-Fuseau',
