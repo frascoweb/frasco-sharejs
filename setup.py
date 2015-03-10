@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from distutils.command.install import install
+from setuptools.command.install import install
 import os
 import sys
 import pkgutil
